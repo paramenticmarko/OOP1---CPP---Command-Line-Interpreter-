@@ -55,7 +55,7 @@ void Interpreter::executeLine(string line, istream& defaultIn, ostream& defaultO
 
 				bool isFirst = (i == 0);
 				bool isLast = (i == (int)parsed->commands.size() - 1);
-				
+
 				if (!isFirst && cmd->hasInputRedirect)
 					throw SemanticError("Only the first command can have input redrection!");
 				if (!isLast && cmd->hasOutputRedirect)
@@ -66,120 +66,7 @@ void Interpreter::executeLine(string line, istream& defaultIn, ostream& defaultO
 					throw SemanticError("Time and date cannot be in a pipeline if not first command!");
 			}
 
-			string previousOutput = "";
-
-			for (int i = 0; i < (int)parsed->commands.size(); i++)
-			{
-				ParsedLine* cmd = parsed->commands[i];
-
-				ifstream fin;
-				ofstream fout;
-				istringstream pipeInput(previousOutput);
-				ostringstream pipeOutput;
-
-				istream* in = nullptr;
-				ostream* out = nullptr;
-
-				bool first = (i == 0);
-				bool last = (i == (int)parsed->commands.size() - 1);
-
-				if (first)
-
-				{
-
-					if (cmd->hasInputRedirect)
-
-					{
-
-						fin.open(cmd->inputFile);
-
-						if (!fin.is_open())
-
-						{
-
-							throw SemanticError("File with this name does not exist: " + cmd->inputFile);
-
-						}
-
-						in = &fin;
-
-					}
-
-					else
-
-					{
-
-						in = &defaultIn;
-
-					}
-
-				}
-
-				else
-
-				{
-
-					in = &pipeInput;
-
-				}
-
-				if (last)
-
-				{
-
-					if (cmd->hasOutputRedirect)
-
-					{
-
-						if (cmd->appendOutput)
-
-							fout.open(cmd->outputFile, ios::app);
-
-						else
-
-							fout.open(cmd->outputFile, ios::trunc);
-
-						if (!fout.is_open())
-
-						{
-
-							throw SemanticError("Could not open output file: " + cmd->outputFile);
-
-						}
-
-						out = &fout;
-
-					}
-
-					else
-
-					{
-
-						out = &defaultOut;
-
-					}
-
-				}
-
-				else
-
-				{
-
-					out = &pipeOutput;
-
-				}
-
-				cmd->command->execute(*in, *out);
-
-				if (!last)
-
-				{
-
-					previousOutput = pipeOutput.str();
-
-				}
-
-			}
+			runPipeline(parsed, defaultIn, defaultOut);
 
 		}
 
@@ -205,6 +92,93 @@ void Interpreter::executeLine(string line, istream& defaultIn, ostream& defaultO
 			delete parsed->commands[i];
 		}
 		delete parsed;
+	}
+}
+
+void Interpreter::runPipeline(ParsedPipeline* parsed, istream& defaultIn, ostream& defaultOut)
+{
+	string previousOutput = "";
+	//vector<string> stageOutputs(parsed->commands.size());  
+
+	for (int i = 0; i < (int)parsed->commands.size(); i++)
+	{
+		ParsedLine* cmd = parsed->commands[i];
+
+		ifstream fin;
+		ofstream fout;
+		istringstream pipeInput(previousOutput);
+		ostringstream pipeOutput;
+
+		istream* in = nullptr;
+		ostream* out = nullptr;
+
+		bool first = (i == 0);
+		bool last = (i == (int)parsed->commands.size() - 1);
+
+		if (first)
+		{
+			if (cmd->hasInputRedirect)
+			{
+				fin.open(cmd->inputFile);
+				if (!fin.is_open())
+				{
+					throw SemanticError("File with this name does not exist: " + cmd->inputFile);
+				}
+				in = &fin;
+			}
+			else
+			{
+				in = &defaultIn;
+			}
+		}
+		else
+		{
+			in = &pipeInput;
+		}
+
+		if (last)
+		{
+			if (cmd->hasOutputRedirect)
+			{
+				if (cmd->appendOutput)
+					fout.open(cmd->outputFile, ios::app);
+				else
+					fout.open(cmd->outputFile, ios::trunc);
+
+				if (!fout.is_open())
+				{
+					throw SemanticError("Could not open output file: " + cmd->outputFile);
+				}
+				out = &fout;
+			}
+			else
+			{
+				out = &defaultOut;
+			}
+		}
+		else
+		{
+			out = &pipeOutput;
+		}
+
+		cmd->command->execute(*in, *out);
+		/* PipeRef logika :
+		PipeRef* ref = dynamic_cast<PipeRef*>(cmd->command);
+		if (ref != nullptr) {
+		    int n = stoi(ref->getArg());
+		    if (n < 1 || n > i) throw SemanticError("Invalid pipeline reference!");
+		    Command* targetCommand = parsed->commands[n - 1]->command;
+		    istringstream refInput(stageOutputs[n - 1]);
+		    targetCommand->execute(refInput, *out);
+		} else {
+		    cmd->command->execute(*in, *out);
+		}
+		*/
+		if (!last)
+		{
+			previousOutput = pipeOutput.str();
+			//stageOutputs[i] = pipeOutput.str(); 
+		}
 	}
 }
 

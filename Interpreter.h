@@ -26,6 +26,8 @@ public:
 	void executeLine(string line, istream& in, ostream& out);
 
 private:
+	void runPipeline(ParsedPipeline* parsed, istream& defaultIn, ostream& defaultOut);
+
 	Interpreter();
 	~Interpreter();
 

@@ -323,7 +323,14 @@ Command* Parser::createCommand(vector<string> tokens) {
         if (tokens.size() > 1) arg = tokens[1];
         return new Batch(arg);
     }
-
+    // PipeRef - referenca na N-tu komandu u pipeline-u (npr. "echo 123 | wc -c | 2")
+    /*bool isNumber = !cmd.empty() && all_of(cmd.begin(), cmd.end(), ::isdigit);
+    if (isNumber) {
+        if (tokens.size() != 1)
+            throw CommandError("Pipeline reference: Wrong number of arguments!");
+        return new PipeRef(cmd);
+    }
+    */
     throw CommandError("Unknown command: " + cmd);
 }
 
