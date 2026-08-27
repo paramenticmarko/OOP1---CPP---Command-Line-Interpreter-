@@ -12,7 +12,7 @@
 #include "Tr.h"
 #include "Batch.h"
 
-bool isRedOrPipeToken(string str) {
+bool isRedOrPipeToken(const string& str) {
     return str == "<" || str == ">" || str == ">>" || str == "|";
 }
 
@@ -27,12 +27,12 @@ void deletePipeline(ParsedPipeline* pipe) {
     delete pipe;
 }
 
-ParsedLine* Parser::parseCommandLine(string line) {
+ParsedLine* Parser::parseCommandLine(const string& line) {
     vector<string> tokens = tokenize(line);
     return parseSingleCommandTokens(tokens);
 }
 
-ParsedLine* Parser::parseSingleCommandTokens(vector<string> tokens) {
+ParsedLine* Parser::parseSingleCommandTokens(const vector<string>& tokens) {
     if (tokens.empty()) return nullptr;
 
     ParsedLine* parsed = new ParsedLine();
@@ -110,7 +110,7 @@ ParsedLine* Parser::parseSingleCommandTokens(vector<string> tokens) {
     return parsed;
 }
 
-ParsedPipeline* Parser::parsePipeline(string line) {
+ParsedPipeline* Parser::parsePipeline(const string& line) {
     vector<string> tokens = tokenize(line);
     if (tokens.empty()) return nullptr;
 
@@ -155,7 +155,7 @@ ParsedPipeline* Parser::parsePipeline(string line) {
 }
 
 
-vector<string> Parser::tokenize(string line) {
+vector<string> Parser::tokenize(const string& line) {
     vector<string> tokens;
     string current;
     bool leftQuoteMark = false;
@@ -216,7 +216,7 @@ vector<string> Parser::tokenize(string line) {
     return tokens;
 }
 
-Command* Parser::createCommand(vector<string> tokens) {
+Command* Parser::createCommand(const vector<string>& tokens) {
     if (tokens.empty()) return nullptr;
     string cmd = tokens[0];
 

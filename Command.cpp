@@ -19,7 +19,7 @@ Command::Command(string arg) :
 
 Command::~Command() {} // destr
 
-string Command::commandArg(string arg, istream& in)
+string Command::commandArg(const string& arg, istream& in)
 {
 	if (arg == "") // read arg from stdin
 	{

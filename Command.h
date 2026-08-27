@@ -9,13 +9,13 @@ class Command {
 public:
 	Command(string opt, string arg, string ext);
 	Command(string opt, string arg);
-	Command(string arg);
+	explicit Command(string arg);
 
 	virtual ~Command();
 
 	virtual void execute(istream& in, ostream& out) = 0;
 
-	string commandArg(string arg, istream& in);
+	string commandArg(const string& arg, istream& in);
 
 	string getArg() { 
 		return this->arg; 

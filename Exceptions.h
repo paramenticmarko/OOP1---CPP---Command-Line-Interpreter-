@@ -6,46 +6,43 @@
 
 using namespace std;
 
-class SyntaxError : public exception
-{
-private:
-	string msg;
-
+class SyntaxError : public exception {
 public:
-	SyntaxError(string msg) : msg("Error! " + msg) {}
+	explicit SyntaxError(const string& msg) : msg("Error! " + msg) {}
 
 	const char* what() const noexcept override
 	{
 		return msg.c_str(); // conversion to const char*
 	}
-};
 
-class SemanticError : public exception
-{
 private:
 	string msg;
+};
 
+class SemanticError : public exception {
 public:
-	SemanticError(string msg) : msg("Error! " + msg) {}
+	explicit SemanticError(const string& msg) : msg("Error! " + msg) {}
 
 	const char* what() const noexcept override
 	{
 		return msg.c_str();
 	}
-};
 
-class CommandError : public exception
-{
 private:
 	string msg;
+};
 
+class CommandError : public exception {
 public:
-	CommandError(string msg) : msg("Error! " + msg) {}
+	explicit CommandError(const string& msg) : msg("Error! " + msg) {}
 
 	const char* what() const noexcept override
 	{
 		return msg.c_str();
 	}
+
+private:
+	string msg;
 };
 
 #endif

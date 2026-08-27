@@ -25,13 +25,13 @@ struct ParsedPipeline {
 
 class Parser {
 public:
-	ParsedLine* parseCommandLine(string line); // tokenize + parse single command
-    ParsedPipeline* parsePipeline(string line); // tokenize + split by '|' + parse 
-    ParsedLine* parseSingleCommandTokens(vector<string> tokens); // tokens -> cmd + redirect
+	ParsedLine* parseCommandLine(const string& line); // tokenize + parse single command
+    ParsedPipeline* parsePipeline(const string& line); // tokenize + split by '|' + parse 
+    ParsedLine* parseSingleCommandTokens(const vector<string>& tokens); // tokens -> cmd + redirect
 
 private:
-	vector<string> tokenize(string line); // line -> tokens
-	Command* createCommand(vector<string> tokens); // cmd name -> cmd obj
+	vector<string> tokenize(const string& line); // line -> tokens
+	Command* createCommand(const vector<string>& tokens); // cmd name -> cmd obj
 };
 
 #endif

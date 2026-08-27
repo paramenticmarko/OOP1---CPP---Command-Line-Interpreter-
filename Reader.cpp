@@ -11,13 +11,13 @@ Reader::Reader(istream* input)
 	:input(input) {
 }
 
-string Reader::getLine() {
+string Reader::getLine() const {
 	string line;
 	getline(*input, line);
 	return line;
 }
 
-bool Reader::isEof() {
+bool Reader::isEof() const {
 	return input->eof();
 }
 
@@ -30,7 +30,7 @@ ConsoleReader::ConsoleReader()
 	:Reader(&cin) {
 }
 
-string ConsoleReader::getLine() {
+string ConsoleReader::getLine() const {
 	string line = Reader::getLine();
 
 	if (line.size() > 512) {
@@ -40,7 +40,7 @@ string ConsoleReader::getLine() {
 	return line;
 }
 
-FileReader::FileReader(string path)
+FileReader::FileReader(const string& path)
 	:Reader(new ifstream(path)) {
 	if (!((ifstream*)input)->is_open())
 		throw SemanticError("Ne postoji fajl: " + path);

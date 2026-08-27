@@ -8,11 +8,11 @@ using namespace std;
 
 class Reader {
 public:
-	Reader(istream* input);
+	explicit Reader(istream* input);
 	virtual ~Reader() {}
 
-	virtual string getLine();
-	bool isEof();
+	virtual string getLine() const;
+	bool isEof() const;
 	void clearInput();
 
 protected:
@@ -23,12 +23,12 @@ class ConsoleReader : public Reader {
 public:
 	ConsoleReader();
 
-	virtual string getLine() override;
+	virtual string getLine() const override;
 };
 
 class FileReader : public Reader {
 public:
-	FileReader(string path);
+	explicit FileReader(const string& path);
 	~FileReader();
 };
 

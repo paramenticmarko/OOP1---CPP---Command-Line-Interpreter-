@@ -16,19 +16,21 @@ class Interpreter {
 public:
 	static Interpreter& getInstance();
 
-	string getPrompt();
+	string getPrompt() const;
 
-	void setPrompt(string prompt);
+	void setPrompt(const string& prompt);
 
 	void run();
 
-	void executeLine(string line);
-	void executeLine(string line, istream& in, ostream& out);
+	void executeLine(const string& line);
+	void executeLine(const string& line, istream& in, ostream& out);
 
 private:
 	void runPipeline(ParsedPipeline* parsed, istream& defaultIn, ostream& defaultOut);
 
 	Interpreter();
+	Interpreter(const Interpreter&) = delete;
+	void operator=(const Interpreter&) = delete;
 	~Interpreter();
 
 	Reader* reader;

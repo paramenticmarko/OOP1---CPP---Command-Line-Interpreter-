@@ -24,21 +24,21 @@ Interpreter& Interpreter::getInstance() // singleton
 	return instance;
 }
 
-string Interpreter::getPrompt()
+string Interpreter::getPrompt() const
 {
 	return this->prompt;
 }
 
-void Interpreter::setPrompt(string prompt)
+void Interpreter::setPrompt(const string& prompt)
 {
 	this->prompt = prompt;
 }
 
-void Interpreter::executeLine(string line) { // std in/out
+void Interpreter::executeLine(const string& line) { // std in/out
 	executeLine(line, cin, cout);
 }
 
-void Interpreter::executeLine(string line, istream& defaultIn, ostream& defaultOut)
+void Interpreter::executeLine(const string& line, istream& defaultIn, ostream& defaultOut)
 {
 	ParsedPipeline* parsed = nullptr;
 
