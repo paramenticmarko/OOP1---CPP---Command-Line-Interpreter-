@@ -5,6 +5,7 @@
 
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 using namespace std;
 
@@ -32,6 +33,8 @@ public:
 private:
 	vector<string> tokenize(const string& line); // line -> tokens
 	Command* createCommand(const vector<string>& tokens); // cmd name -> cmd obj
+
+    static unordered_map<string, Command* (*)(const vector<string>&)> commands;
 };
 
 #endif

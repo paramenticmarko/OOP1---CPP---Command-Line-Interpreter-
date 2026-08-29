@@ -12,6 +12,119 @@
 #include "Tr.h"
 #include "Batch.h"
 
+#include <unordered_map>
+
+unordered_map<string, Command* (*)(const vector<string>&)> Parser::commands = {
+
+        { "touch", +[](const vector<string>& tokens) -> Command* {
+            if (tokens.size() != 2)
+                throw CommandError("Touch: Wrong number of arguments!");
+            return new Touch(tokens[1]);
+        }},
+
+        { "wc", +[](const vector<string>& tokens) -> Command* {
+            if (tokens.size() > 3)
+                throw CommandError("Wc: Wrong number of arguments!");
+            string opt = "";
+            string arg = "";
+            if (tokens.size() > 1) opt = tokens[1];
+            if (tokens.size() > 2) arg = tokens[2];
+            return new Wc(opt, arg);
+        }},
+
+        { "tr", +[](const vector<string>& tokens) -> Command* {
+            string arg = "";
+            string opt = "";
+            string ext = "";
+            int i = 1;
+
+            if (i < (int)tokens.size() && !tokens[i].empty() && tokens[i][0] != '-') {
+                arg = tokens[i];
+                i++;
+            }
+            if (i >= (int)tokens.size() || tokens[i].empty() || tokens[i][0] != '-') {
+                throw CommandError("Tr: Missing -what!");
+            }
+            opt = tokens[i].substr(1);
+            if (!opt.empty() && opt.front() == '"' && opt.back() == '"') {
+                opt = opt.substr(1, opt.size() - 2);
+            }
+            i++;
+            if (i < (int)tokens.size() && !tokens[i].empty()) {
+                ext = tokens[i];
+                if (!ext.empty() && ext.front() == '"' && ext.back() == '"') {
+                    ext = ext.substr(1, ext.size() - 2);
+                }
+                i++;
+            }
+            if (i != (int)tokens.size())
+                throw CommandError("Tr: Wrong number of arguments!");
+            return new Tr(opt, arg, ext);
+        }},
+
+        { "time", +[](const vector<string>& tokens) -> Command* {
+            if (tokens.size() != 1) {
+                throw CommandError("Time: Wrong number of arguments!");
+            }
+            return new Time("");
+        }},
+
+        { "date", +[](const vector<string>& tokens) -> Command* {
+            if (tokens.size() != 1) {
+                throw CommandError("Date: Wrong number of arguments!");
+            }
+            return new Date("");
+        }},
+
+        { "rm", +[](const vector<string>& tokens) -> Command* {
+            if (tokens.size() != 2) {
+                throw CommandError("Rm: Wrong number of arguments!");
+            }
+            return new Rm(tokens[1]);
+        }},
+
+        { "echo", +[](const vector<string>& tokens) -> Command* {
+            if (tokens.size() > 2)
+                throw CommandError("Echo: Wrong number of arguments!");
+            string arg = "";
+            if (tokens.size() > 1) arg = tokens[1];
+            return new Echo(arg);
+        }},
+
+        { "prompt", +[](const vector<string>& tokens) -> Command* {
+            if (tokens.size() != 2)
+                throw CommandError("Prompt: Wrong number of arguments!");
+            return new Prompt(tokens[1]);
+        }},
+
+        { "truncate", +[](const vector<string>& tokens) -> Command* {
+            if (tokens.size() != 2)
+                throw CommandError("Truncate: Wrong number of arguments!");
+            return new Truncate(tokens[1]);
+        }},
+
+        { "head", +[](const vector<string>& tokens) -> Command* {
+            if (tokens.size() > 3) {
+                throw CommandError("Head: Wrong number of arguments!");
+            }
+            string opt = "";
+            string arg = "";
+            if (tokens.size() > 1) opt = tokens[1];
+            if (tokens.size() > 2) arg = tokens[2];
+            return new Head(opt, arg);
+        }},
+
+        { "batch", +[](const vector<string>& tokens) -> Command* {
+            if (tokens.size() != 2) {
+                throw CommandError("Batch: Wrong number of arguments!");
+            }
+            string arg = "";
+            if (tokens.size() > 1) arg = tokens[1];
+            return new Batch(arg);
+        }},
+
+};
+
 bool isRedOrPipeToken(const string& str) {
     return str == "<" || str == ">" || str == ">>" || str == "|";
 }
@@ -25,6 +138,19 @@ void deletePipeline(ParsedPipeline* pipe) {
     }
 
     delete pipe;
+}
+
+Command* Parser::createCommand(const vector<string>& tokens) {
+    if (tokens.empty()) return nullptr;
+
+    string cmd = tokens[0];
+
+    auto it = commands.find(cmd);
+    if (it != commands.end()) {
+        return it->second(tokens);
+    }
+
+    throw CommandError("Unknown command: " + cmd);
 }
 
 ParsedLine* Parser::parseCommandLine(const string& line) {
@@ -154,7 +280,6 @@ ParsedPipeline* Parser::parsePipeline(const string& line) {
     return pipeline;
 }
 
-
 vector<string> Parser::tokenize(const string& line) {
     vector<string> tokens;
     string current;
@@ -216,114 +341,7 @@ vector<string> Parser::tokenize(const string& line) {
     return tokens;
 }
 
-Command* Parser::createCommand(const vector<string>& tokens) {
-    if (tokens.empty()) return nullptr;
-    string cmd = tokens[0];
-
-    if (cmd == "touch") {
-        if (tokens.size() != 2)
-            throw CommandError("Touch: Wrong number of arguments!");
-        return new Touch(tokens[1]);
-    }
-    if (cmd == "time") {
-        if (tokens.size() != 1)
-            throw CommandError("Time: Wrong number of arguments!");
-        return new Time("");
-    }
-    if (cmd == "date") {
-        if (tokens.size() != 1)
-            throw CommandError("Date: Wrong number of arguments!");
-        return new Date("");
-    }
-    if (cmd == "echo") {
-        if(tokens.size()>2)
-            throw CommandError("Echo: Wrong number of arguments!");
-        string arg = "";
-        if (tokens.size() > 1) arg = tokens[1];
-        return new Echo(arg);
-    }
-    if (cmd == "wc") {
-        if(tokens.size()>3)
-            throw CommandError("Wc: Wrong number of arguments!");
-        string opt = "";
-        string arg = "";
-
-        if (tokens.size() > 1) opt = tokens[1];
-        if (tokens.size() > 2) arg = tokens[2];
-
-        return new Wc(opt, arg);
-    }
-    if (cmd == "prompt"){
-        if(tokens.size()!=2)
-            throw CommandError("Prompt: Wrong number of arguments!");
-        return new Prompt(tokens[1]);
-    }
-    if (cmd == "truncate"){
-        if(tokens.size()!=2)
-            throw CommandError("Truncate: Wrong number of arguments!");
-        return new Truncate(tokens[1]);
-    }
-    if (cmd == "rm") {
-        if(tokens.size()!=2)
-            throw CommandError("Rm: Wrong number of arguments!");
-        return new Rm(tokens[1]);
-    }
-    if (cmd == "head") {
-        if(tokens.size()>3)
-            throw CommandError("Head: Wrong number of arguments!");
-        string opt = "";
-        string arg = "";
-
-        if (tokens.size() > 1) opt = tokens[1];
-        if (tokens.size() > 2) arg = tokens[2];
-
-        return new Head(opt, arg);
-    }
-    if (cmd == "tr") {
-        string arg = "";
-        string opt = "";
-        string ext = "";
-
-        int i = 1;
-
-        if (i < tokens.size() && !tokens[i].empty() && tokens[i][0] != '-') {
-            arg = tokens[i];
-            i++;
-        }
-
-        if (i >= tokens.size() || tokens[i].empty() || tokens[i][0] != '-') {
-            throw CommandError("Tr: Missing -what!");
-        }
-
-        opt = tokens[i].substr(1);
-        if (!opt.empty() && opt.front() == '"' && opt.back() == '"') {
-            opt = opt.substr(1, opt.size() - 2);
-        }
-
-        i++;
-
-        if (i < tokens.size() && !tokens[i].empty()) {
-            ext = tokens[i];
-            if (!ext.empty() && ext.front() == '"' && ext.back() == '"') {
-                ext = ext.substr(1, ext.size() - 2);
-            }
-            i++;
-        }
-
-        if(i!=tokens.size())
-            throw CommandError("Tr: Wrong number of arguments!");
-
-        return new Tr(opt, arg, ext);
-    }
-    if (cmd == "batch") {
-        if(tokens.size()!=2)
-            throw CommandError("Batch: Wrong number of arguments!");
-
-        string arg = "";
-        if (tokens.size() > 1) arg = tokens[1];
-        return new Batch(arg);
-    }
-    // PipeRef - referenca na N-tu komandu u pipeline-u (npr. "echo 123 | wc -c | 2")
+// PipeRef - referenca na N-tu komandu u pipeline-u (npr. "echo 123 | wc -c | 2")
     /*bool isNumber = !cmd.empty() && all_of(cmd.begin(), cmd.end(), ::isdigit);
     if (isNumber) {
         if (tokens.size() != 1)
@@ -331,7 +349,5 @@ Command* Parser::createCommand(const vector<string>& tokens) {
         return new PipeRef(cmd);
     }
     */
-    throw CommandError("Unknown command: " + cmd);
-}
 
 
