@@ -13,22 +13,29 @@
 #include "Batch.h"
 
 #include <unordered_map>
+#include <algorithm>
 
 unordered_map<string, Command* (*)(const vector<string>&)> Parser::commands = {
 
         { "touch", +[](const vector<string>& tokens) -> Command* {
             if (tokens.size() != 2)
                 throw CommandError("Touch: Wrong number of arguments!");
+
             return new Touch(tokens[1]);
         }},
 
         { "wc", +[](const vector<string>& tokens) -> Command* {
             if (tokens.size() > 3)
                 throw CommandError("Wc: Wrong number of arguments!");
+
             string opt = "";
             string arg = "";
             if (tokens.size() > 1) opt = tokens[1];
             if (tokens.size() > 2) arg = tokens[2];
+
+            if (opt != "" && opt != "-c" && opt != "-w")
+                throw CommandError("Wc: Unknown option: " + opt);
+
             return new Wc(opt, arg);
         }},
 
@@ -59,6 +66,7 @@ unordered_map<string, Command* (*)(const vector<string>&)> Parser::commands = {
             }
             if (i != (int)tokens.size())
                 throw CommandError("Tr: Wrong number of arguments!");
+
             return new Tr(opt, arg, ext);
         }},
 
@@ -66,6 +74,7 @@ unordered_map<string, Command* (*)(const vector<string>&)> Parser::commands = {
             if (tokens.size() != 1) {
                 throw CommandError("Time: Wrong number of arguments!");
             }
+
             return new Time("");
         }},
 
@@ -73,6 +82,7 @@ unordered_map<string, Command* (*)(const vector<string>&)> Parser::commands = {
             if (tokens.size() != 1) {
                 throw CommandError("Date: Wrong number of arguments!");
             }
+
             return new Date("");
         }},
 
@@ -80,26 +90,31 @@ unordered_map<string, Command* (*)(const vector<string>&)> Parser::commands = {
             if (tokens.size() != 2) {
                 throw CommandError("Rm: Wrong number of arguments!");
             }
+
             return new Rm(tokens[1]);
         }},
 
         { "echo", +[](const vector<string>& tokens) -> Command* {
             if (tokens.size() > 2)
                 throw CommandError("Echo: Wrong number of arguments!");
+
             string arg = "";
             if (tokens.size() > 1) arg = tokens[1];
+
             return new Echo(arg);
         }},
 
         { "prompt", +[](const vector<string>& tokens) -> Command* {
             if (tokens.size() != 2)
                 throw CommandError("Prompt: Wrong number of arguments!");
+
             return new Prompt(tokens[1]);
         }},
 
         { "truncate", +[](const vector<string>& tokens) -> Command* {
             if (tokens.size() != 2)
                 throw CommandError("Truncate: Wrong number of arguments!");
+
             return new Truncate(tokens[1]);
         }},
 
@@ -107,10 +122,16 @@ unordered_map<string, Command* (*)(const vector<string>&)> Parser::commands = {
             if (tokens.size() > 3) {
                 throw CommandError("Head: Wrong number of arguments!");
             }
+
             string opt = "";
             string arg = "";
             if (tokens.size() > 1) opt = tokens[1];
             if (tokens.size() > 2) arg = tokens[2];
+
+            if (opt.size() < 3 || opt[0] != '-' || opt[1] != 'n' ||
+                !all_of(opt.begin() + 2, opt.end(), ::isdigit))
+                throw CommandError("Head: Invalid option: " + opt);
+
             return new Head(opt, arg);
         }},
 
@@ -118,8 +139,10 @@ unordered_map<string, Command* (*)(const vector<string>&)> Parser::commands = {
             if (tokens.size() != 2) {
                 throw CommandError("Batch: Wrong number of arguments!");
             }
+
             string arg = "";
             if (tokens.size() > 1) arg = tokens[1];
+
             return new Batch(arg);
         }},
 
